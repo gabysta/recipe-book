@@ -1,0 +1,200 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Nov 19 21:13:41 2024
+
+@author: watchmaker.k
+"""
+from gpt4all import GPT4All
+import tkinter as tk
+from PIL import Image, ImageTk  
+
+
+class RecipeBook:
+    def __init__(self, root, model_name="Phi-3-mini-4k-instruct.Q4_0.gguf"):
+        # Creating a window
+        self.root = root
+        self.root.geometry("500x700")
+        self.root.title("Recipes by Gaby, Michelle, and Kate")
+        #Window Design
+        self.create_title()
+        self.create_image()
+        self.create_buttons()
+        self.create_recipe_display()
+        #Generating the AI Model
+        self.model = GPT4All(model_name)
+        self.ingredients = []
+        self.mealtype = ""
+        self.people = ""
+
+    def create_title(self):
+        # Title of the Website
+        title_frame = tk.Frame(self.root, bg="lightpink")
+        title_frame.pack(side="top", fill="x")
+        # Background Color of Page 
+        self.root.configure(bg="lightpink")
+        # Label of the Website 
+        title_label = tk.Label(
+            title_frame,
+            bg="lightpink",
+            fg="black",
+            text="Recipes by Gaby, Michelle, and Kate",
+            font=('Lucida Handwriting', 20)
+        )
+        title_label.pack(pady=10)  # Adding Space (Top and Bottom)
+        #Text on the screen
+        subtitle_label = tk.Label(
+            title_frame,
+            bg="lightpink",
+            fg="black",
+            text="Please Generate to Begin!...",
+            font=('Lucida Handwriting', 18)
+        )
+        subtitle_label.pack(pady=20)  # Adding Space (Top and Bottom)
+
+    def create_image(self):
+        # Image Section
+        image_frame = tk.Frame(self.root, bg="lightpink") #Background of the image is pink
+        image_frame.pack(expand=True)  # Centering of the image
+        image_path = r"C:\Users\watchmaker.k\Downloads\1335829.png"  # Path to the image
+        try:
+            image = Image.open(image_path)
+            resized_image = image.resize((300, 300))  # Image sizing 
+            self.tk_image = ImageTk.PhotoImage(resized_image)
+            image_label = tk.Label(image_frame, image=self.tk_image, bg="lightpink")
+            image_label.pack(pady=20)  # Adding Space (Top and Bottom)
+
+    
+        except FileNotFoundError: # Prevent garbage collection - go over
+            error_label = tk.Label(
+                image_frame,
+                text="Image not found!",
+                font=('Lucida Handwriting', 14),
+                bg="lightpink",
+                fg="red"
+            )
+            error_label.pack(pady=20)
+            
+    def create_buttons(self):
+        # Layout for all buttons 
+
+        button_frame = tk.Frame(self.root, bg="lightpink")
+        button_frame.pack(side="bottom", fill="x", pady=(0, 20))
+        
+        generate_button = tk.Button(
+            button_frame,
+            text="Generate Recipe",
+            font=('Lucida Handwriting', 14),
+            command=self.prompt_user_data
+        )
+        generate_button.pack(pady=10)
+    def create_recipe_display(self):
+        # Recipe display area
+        self.recipe_text = tk.Text(self.root, height=15, width=50, wrap="word", font=('Lucida Handwriting', 12))
+        self.recipe_text.pack(pady=20)        
+        import threading
+        
+        def generate_recipe(self):
+            threading.Thread(target=self._generate_recipe_worker).start()
+
+        #Design for the recipe display
+    def prompt_user_data(self):
+        # Popup window for user inputs
+        user_input_window = tk.Toplevel(self.root)
+        user_input_window.geometry("400x400")
+        user_input_window.title("Enter Recipe Details")
+        user_input_window.configure(bg="lightpink")
+        
+        # Meal type
+        tk.Label(
+            user_input_window,
+            text="Meal Type (Breakfast, Lunch, Dinner):",
+            bg="lightpink",
+            font=('Lucida Handwriting', 14)
+        ).pack(pady=10)
+        meal_type_entry = tk.Entry(user_input_window, width=30)
+        meal_type_entry.pack(pady=5)
+
+        # Ingredients
+        tk.Label(
+            user_input_window,
+            text="Ingredients (comma-separated):",
+            bg="lightpink",
+            font=('Lucida Handwriting', 14)
+        ).pack(pady=10)
+        ingredients_entry = tk.Entry(user_input_window, width=30)
+        ingredients_entry.pack(pady=5)
+
+        # Number of people
+        tk.Label(
+            user_input_window,
+            text="Number of People:",
+            bg="lightpink",
+            font=('Lucida Handwriting', 14)
+        ).pack(pady=10)
+        people_entry = tk.Entry(user_input_window, width=30)
+        people_entry.pack(pady=5)
+        
+
+        def submit_data():
+             self.meal_type = meal_type_entry.get().strip()
+             ingredients = ingredients_entry.get().strip()
+             self.ingredients = [ingredient.strip() for ingredient in ingredients.split(",")]
+             self.people = people_entry.get().strip()
+             user_input_window.destroy()
+             self.generate_recipe()
+
+        submit_button = tk.Button(
+             user_input_window,
+             text="Submit",
+             font=('Lucida Handwriting', 14),
+             command=submit_data
+         )
+        submit_button.pack(pady=20)
+    
+    def generate_recipe(self):
+        """
+        Generate a recipe using the GPT4All model.
+        """
+        if not self.model:
+            self.display_recipe("Model not loaded. Please check the configuration.")
+            return
+
+        # Check inputs
+        if not self.ingredients:
+            self.display_recipe("No ingredients provided. Please enter ingredients.")
+            return
+        if not self.meal_type:
+            self.display_recipe("No meal type selected. Please select a meal type.")
+            return
+
+        ingredients_list = ", ".join(self.ingredients)
+        prompt = (
+        f"Generate a creative {self.meal_type} recipe using the following ingredients: {ingredients_list}. "
+        f"Make sure the recipe includes all the steps needed to prepare the dish."
+    )
+
+        print(f"Prompt sent to model: {prompt}")
+        try:
+            response = self.model.generate(prompt, max_tokens=1000).strip() #Permitted size for the Recipes 
+            print(f"Model response: {response}")
+        except Exception as e:
+            print(f"Error during model generation: {e}")
+            response = "An error occurred while generating the recipe. Please try again."
+
+        if not response or response.strip() == "":
+            response = "Unable to generate a recipe. Please try again with different ingredients."
+
+        self.display_recipe(response)
+
+    def display_recipe(self, recipe):
+        self.recipe_text.delete("1.0", tk.END)
+        self.recipe_text.insert(tk.END, recipe)
+
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = RecipeBook(root)
+    root.mainloop()
+
+
+
