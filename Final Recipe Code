@@ -73,9 +73,8 @@ class RecipeBook:
                 fg="red"
             )
             error_label.pack(pady=20)
-            
+    # ButtonsDesign         
     def create_buttons(self):
-        # Layout for all buttons 
 
         button_frame = tk.Frame(self.root, bg="lightpink")
         button_frame.pack(side="bottom", fill="x", pady=(0, 20))
@@ -87,8 +86,9 @@ class RecipeBook:
             command=self.prompt_user_data
         )
         generate_button.pack(pady=10)
+        
+    # Design for displaying the recipe
     def create_recipe_display(self):
-        # Recipe display area
         self.recipe_text = tk.Text(self.root, height=15, width=50, wrap="word", font=('Lucida Handwriting', 12))
         self.recipe_text.pack(pady=20)        
         import threading
@@ -99,43 +99,43 @@ class RecipeBook:
         #Design for the recipe display
     def prompt_user_data(self):
         # Popup window for user inputs
-        user_input_window = tk.Toplevel(self.root)
-        user_input_window.geometry("400x400")
-        user_input_window.title("Enter Recipe Details")
+        user_input_window = tk.Toplevel(self.root) # New Window Created 
+        user_input_window.geometry("400x400") #Window Design 
+        user_input_window.title("Enter Recipe Details") 
         user_input_window.configure(bg="lightpink")
         
-        # Meal type
+        # Meal Type Widget (new window) and design 
         tk.Label(
             user_input_window,
             text="Meal Type (Breakfast, Lunch, Dinner):",
             bg="lightpink",
             font=('Lucida Handwriting', 14)
         ).pack(pady=10)
-        meal_type_entry = tk.Entry(user_input_window, width=30)
-        meal_type_entry.pack(pady=5)
+        meal_type_entry = tk.Entry(user_input_window, width=30) # Allows user to input 
+        meal_type_entry.pack(pady=5) # Spacing
 
-        # Ingredients
+        # Ingredients input Type Widget (new window) and design
         tk.Label(
             user_input_window,
             text="Ingredients (comma-separated):",
             bg="lightpink",
             font=('Lucida Handwriting', 14)
         ).pack(pady=10)
-        ingredients_entry = tk.Entry(user_input_window, width=30)
+        ingredients_entry = tk.Entry(user_input_window, width=30) # creates user input window
         ingredients_entry.pack(pady=5)
 
-        # Number of people
+        # Number of people input 
         tk.Label(
             user_input_window,
             text="Number of People:",
             bg="lightpink",
             font=('Lucida Handwriting', 14)
         ).pack(pady=10)
-        people_entry = tk.Entry(user_input_window, width=30)
+        people_entry = tk.Entry(user_input_window, width=30) # creates user input Window
         people_entry.pack(pady=5)
         
 
-        def submit_data():
+        def submit_data(): #Allows the user to input data in each window 
              self.meal_type = meal_type_entry.get().strip()
              ingredients = ingredients_entry.get().strip()
              self.ingredients = [ingredient.strip() for ingredient in ingredients.split(",")]
@@ -152,14 +152,9 @@ class RecipeBook:
         submit_button.pack(pady=20)
     
     def generate_recipe(self):
-        """
-        Generate a recipe using the GPT4All model.
-        """
         if not self.model:
             self.display_recipe("Model not loaded. Please check the configuration.")
             return
-
-        # Check inputs
         if not self.ingredients:
             self.display_recipe("No ingredients provided. Please enter ingredients.")
             return
@@ -169,32 +164,36 @@ class RecipeBook:
 
         ingredients_list = ", ".join(self.ingredients)
         prompt = (
-        f"Generate a creative {self.meal_type} recipe using the following ingredients: {ingredients_list}. "
+        f"Generate a simple {self.meal_type} recipe in under 200 tokens using the following ingredients: {ingredients_list}. "
         f"Make sure the recipe includes all the steps needed to prepare the dish."
     )
 
         print(f"Prompt sent to model: {prompt}")
         try:
-            response = self.model.generate(prompt, max_tokens=1000).strip() #Permitted size for the Recipes 
+            response = self.model.generate(prompt, max_tokens=200).strip() #Permitted size for the Recipes and request to generate prompt
             print(f"Model response: {response}")
+            
+            #Creates exceptions to generate errors based on different situations
         except Exception as e:
             print(f"Error during model generation: {e}")
             response = "An error occurred while generating the recipe. Please try again."
 
         if not response or response.strip() == "":
             response = "Unable to generate a recipe. Please try again with different ingredients."
-
         self.display_recipe(response)
-
+        
+        #Ensures that any pervious text is removed 
     def display_recipe(self, recipe):
-        self.recipe_text.delete("1.0", tk.END)
+        self.recipe_text.delete("1.0", tk.END) #Line 1, column 1
         self.recipe_text.insert(tk.END, recipe)
 
-
+    # GUI starts only when the script is run directly.
 if __name__ == "__main__":
     root = tk.Tk()
     app = RecipeBook(root)
     root.mainloop()
+
+
 
 
 
