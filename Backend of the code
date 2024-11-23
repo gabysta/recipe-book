@@ -1,0 +1,30 @@
+from gpt4all import GPT4All
+
+class RecipeBook:
+    def __init__(self, modelName='Phi-3-mini-4k-instruct.Q4_0.gguf'):
+        self.model = GPT4All(modelName)
+
+    def getData(self):
+        self.meal = input("Do you want to cook breakfast, lunch, or dinner? ")
+        askIngredients = input("Enter the ingredients you'll be using: ")
+        self.people = input("How many people are you cooking for? " )
+        self.ingredients = [ingredient for ingredient in askIngredients.split(",")]
+
+    def recipePrompt(self):
+        ingredients_list = ", ".join(self.ingredients)
+        recipeInstruct = (f"Generate a simple {self.meal} recipe for {self.people} people in under 200 tokens using the following ingredients: {ingredients_list}. "
+            f"include the steps needed to prepare the dish in the recipe.")
+        return recipeInstruct
+
+    def makeRecipe(self):
+        recipeInstruct = self.recipePrompt()
+        response = self.model.generate(recipeInstruct, max_tokens=200)
+        return response
+
+    def output(self):
+        print("Welcome to the The Steminists' Cook Book!")
+        self.getData()
+        recipe = self.makeRecipe()
+        print(recipe)
+
+RecipeBook()
